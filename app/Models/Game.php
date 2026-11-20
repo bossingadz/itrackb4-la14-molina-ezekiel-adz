@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Game extends Model
 {
     protected $fillable = [
-        'title', 
-        'platform_id', 
-        'price', 
-        'stock', 
-        'is_featured', 
-        'description'
+    'title',
+    'platform_id',
+    'price',
+    'stock',
+    'is_available',
+    'is_featured',
     ];
 
     protected function casts(): array

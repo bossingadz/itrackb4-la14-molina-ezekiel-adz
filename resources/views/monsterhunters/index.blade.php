@@ -2,37 +2,41 @@
 @section('title', 'Monster Hunter List')
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <h1 class="h2 mb-0">Monster Hunter Games List</h1>
+    <h1 class="h2 mb-0">Game Library</h1>
     <a class="btn btn-primary" href="{{ route('monsterhunters.create') }}">Add New Game</a>
 </div>
 
-<p class="text-secondary mb-3"><strong>Active filters:</strong> {{ $currentPlatform }} · {{ $currentPriceRange }}</p>
-
-<section class="mb-4" aria-label="Game filters">
-    <div class="mb-3">
-        <span class="fw-semibold me-2">Platform</span>
-        <div class="d-inline-flex flex-wrap gap-2">
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('monsterhunters.index', ['platform' => 'all', 'price_range' => $currentPriceRange]) }}">All</a>
-            
-            @foreach ($platforms as $platformItem)
-                <a class="btn btn-sm btn-outline-secondary" href="{{ route('monsterhunters.index', ['platform' => $platformItem->id, 'price_range' => $currentPriceRange]) }}">
-                    {{ $platformItem->name }}
-                </a>
+<form method="GET" action="{{ route('monsterhunters.index') }}" class="row g-2 mb-4">
+    <div class="col-md-3">
+        <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search title">
+    </div>
+    <div class="col-md-3">
+        <select name="platform" class="form-select">
+            <option value="">All Platforms</option>
+            @foreach ($platforms as $platform)
+                <option value="{{ $platform->id }}" @selected(request('platform') == $platform->id)>{{ $platform->name }}</option>
             @endforeach
-        </div>
+        </select>
     </div>
-
-    <div>
-        <span class="fw-semibold me-2">Price</span>
-        <div class="d-inline-flex flex-wrap gap-2">
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('monsterhunters.index', ['platform' => $currentPlatform, 'price_range' => 'all']) }}">All Prices</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('monsterhunters.index', ['platform' => $currentPlatform, 'price_range' => 'budget']) }}">Under ₱1,500</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('monsterhunters.index', ['platform' => $currentPlatform, 'price_range' => 'premium']) }}">Over ₱1,500</a>
-        </div>
+    <div class="col-md-2">
+        <select name="availability" class="form-select">
+            <option value="">Any Availability</option>
+            <option value="1" @selected(request('availability') === '1')>Available</option>
+            <option value="0" @selected(request('availability') === '0')>Unavailable</option>
+        </select>
     </div>
-
-    <a class="btn btn-sm btn-link px-0 mt-2" href="{{ route('monsterhunters.index') }}">Clear all filters</a>
-</section>
+    <div class="col-md-2">
+        <select name="sort" class="form-select">
+            <option value="title" @selected(request('sort', 'title') === 'title')>Sort: Title</option>
+            <option value="price" @selected(request('sort') === 'price')>Sort: Price</option>
+            <option value="stock" @selected(request('sort') === 'stock')>Sort: Stock</option>
+        </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a href="{{ route('monsterhunters.index') }}" class="btn btn-secondary">Clear</a>
+    </div>
+</form>
 
 <div class="table-responsive">
 <table class="table table-striped table-hover align-middle mb-0">
@@ -49,7 +53,7 @@
     <tbody>
         @forelse ($games as $game)
             <tr>
-                <td>{{ $loop->iteration }}</td>
+                <td>{{ $games->firstItem() + $loop->index }}</td>
                 <td>
                     <a href="{{ route('monsterhunters.show', ['monsterhunter' => $game->id]) }}">
                         {{ $game->title }}
@@ -71,14 +75,16 @@
             </tr>
         @empty
             <tr>
-                <td class="text-center text-secondary py-4" colspan="5">No games found matching that filter.</td>
+                <td class="text-center text-secondary py-4" colspan="6">No games found matching that filter.</td>
             </tr>
         @endforelse
     </tbody>
 </table>
 </div>
 
-<p class="mt-3 text-danger fw-bold">Queries: {{ count(\Illuminate\Support\Facades\DB::getQueryLog()) }}</p>
+<div class="mt-3">
+    {{ $games->links() }}
+</div>
 
 <p class="text-center text-muted mt-4">Prepared By: Ezekiel Adz F. Molina | BSIT 4C</p>
 @endsection

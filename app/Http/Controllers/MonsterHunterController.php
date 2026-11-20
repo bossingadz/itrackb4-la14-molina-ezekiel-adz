@@ -5,37 +5,41 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use App\Models\Platform;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MonsterHunterController extends Controller
 {
     public function index(Request $request)
     {
-        DB::enableQueryLog();
-
+        $search = $request->query('search');
         $platformId = $request->query('platform');
-        $priceRange = $request->query('price_range');
+        $availability = $request->query('availability');
+        $sort = $request->query('sort', 'title');
 
         $query = Game::with('platform');
 
-        if ($platformId && $platformId !== 'all') {
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        if ($platformId !== null && $platformId !== '') {
             $query->where('platform_id', $platformId);
         }
 
-        if ($priceRange === 'budget') {
-            $query->where('price', '<=', 1500);
-        } elseif ($priceRange === 'premium') {
-            $query->where('price', '>', 1500);
+        if ($availability !== null && $availability !== '') {
+            $query->where('is_available', $availability);
         }
 
-        $games = $query->get()->keyBy('id');
+        if (! in_array($sort, ['title', 'price', 'stock', 'id'], true)) {
+            $sort = 'title';
+        }
+
+        $games = $query->orderBy($sort)->paginate(5)->withQueryString();
         $platforms = Platform::all();
 
         return view('monsterhunters.index', [
             'games' => $games,
             'platforms' => $platforms,
-            'currentPlatform' => $platformId ?? 'all',
-            'currentPriceRange' => $priceRange ?? 'all',
         ]);
     }
 
@@ -54,10 +58,16 @@ class MonsterHunterController extends Controller
             'stock' => 'required|integer|min:1|max:100',
         ]);
 
-        Game::create($validated);
+        $game =Game::create($validated);
+
+        Log::info('Monster Hunter game created', [
+        'id' => $game->id,
+        ]);
 
         return redirect()->route('monsterhunters.index')
             ->with('success', 'New record added successfully!');
+
+            
     }
 
     public function show(Game $monsterhunter)
@@ -85,11 +95,17 @@ class MonsterHunterController extends Controller
 
         $monsterhunter->update($validated);
 
+        Log::info('Monster Hunter game updated', [
+        'id' => $monsterhunter->id,
+       ]);
+
         return redirect()->route('monsterhunters.index') ->with('success', 'Record updated successfully!');
     }
 
     public function destroy(Game $monsterhunter)
     {
+        abort_if($monsterhunter->platform->games()->count() === 1, 403);
+        
         $monsterhunter->delete();
 
         return redirect()->route('monsterhunters.index');

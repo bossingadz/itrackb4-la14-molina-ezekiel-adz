@@ -9,7 +9,7 @@ class Platform extends Model
 {
     protected $fillable = ['name'];
 
-    public function games(): HasMany
+    public function games()
     {
         return $this->hasMany(Game::class);
     }

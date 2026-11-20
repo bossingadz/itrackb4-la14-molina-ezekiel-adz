@@ -11,7 +11,7 @@ class MonsterHunterRoutesTest extends TestCase
         $response = $this->get('/monsterhunters');
 
         $response->assertOk();
-        $response->assertSee('Monster Hunter Games List');
+        $response->assertSee('Game Library');
     }
 
     public function test_monster_hunter_detail_page_renders(): void
