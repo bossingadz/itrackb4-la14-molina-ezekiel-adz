@@ -3,7 +3,9 @@
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <h1 class="h2 mb-0">Game Library</h1>
-    <a class="btn btn-primary" href="{{ route('monsterhunters.create') }}">Add New Game</a>
+    @auth
+        <a class="btn btn-primary" href="{{ route('monsterhunters.create') }}">Add New Game</a>
+    @endauth
 </div>
 
 <form method="GET" action="{{ route('monsterhunters.index') }}" class="row g-2 mb-4">
@@ -47,7 +49,9 @@
             <th>Platform</th>
             <th>Price</th>
             <th>Stock</th>
-            <th>Actions</th>
+            @auth
+                <th>Actions</th>
+            @endauth
         </tr>
     </thead>
     <tbody>
@@ -64,18 +68,21 @@
 
                 <td>₱{{ number_format($game->price, 2) }}</td>
                 <td>{{ $game->stock }}</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-primary" href="{{ route('monsterhunters.edit', ['monsterhunter' => $game->id]) }}">Edit</a>
+                @auth
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" href="{{ route('monsterhunters.edit', ['monsterhunter' => $game->id]) }}">Edit</a>
 
-                    <form method="POST" action="{{ route('monsterhunters.destroy', ['monsterhunter' => $game->id]) }}" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this game?')">Delete</button>
-                    </form>
+                        <form method="POST" action="{{ route('monsterhunters.destroy', ['monsterhunter' => $game->id]) }}" class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this game?')">Delete</button>
+                        </form>
+                    </td>
+                @endauth
             </tr>
         @empty
             <tr>
-                <td class="text-center text-secondary py-4" colspan="6">No games found matching that filter.</td>
+                <td class="text-center text-secondary py-4" colspan="{{ auth()->check() ? 6 : 5 }}">No games found matching that filter.</td>
             </tr>
         @endforelse
     </tbody>

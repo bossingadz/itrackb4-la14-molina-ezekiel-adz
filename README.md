@@ -109,5 +109,24 @@ Before adding withQueryString(), the generated pagination links contained only t
 
 3: A misspelled sort value does not break your page. Explain why that is worse than an error, and what your allowed list does about it.
 A silent failure is worse than an explicit error because SQLite treats an unrecognized column string as a constant literal in ORDER BY, returning unsorted records without alerting developers or users that the feature is broken. Checking $sort against in_array($sort, ['title', 'price', 'stock']) intercepts invalid or malicious URL parameters and forces a safe fallback to title.
-#   i t r a c k b 4 - l a 1 3 - m o l i n a - e z e k i e l - a d z  
- 
+
+
+# Laboratory Activity 14 — Locking the Front Door
+
+1: Authentication and authorisation are not the same. In one sentence each: what did this lesson give you, and what is still missing next meeting?
+This lesson gave our Monster Hunter application authentication, verifying who a visitor is through registration, login, and session tracking. What is still missing is authorisation—determining what specific actions a signed-in user is permitted to perform (such as restricting record deletion or edits to administrators or record owners).
+
+2: Why does a successful login call session()->regenerate()? What goes wrong if you skip it?
+Calling `session()->regenerate()` issues a brand-new session identifier upon login while keeping session data intact. If skipped, the app remains vulnerable to session fixation attacks, where an attacker who pre-set a user's session ID before login could hijack their authenticated session afterward.
+
+3: Why does a failed login use the same message for a wrong password and an unknown email?
+Returning the generic message `"The provided credentials do not match our records."` prevents user enumeration. If the form revealed whether an email exists in the `users` table, attackers could harvest valid registered email addresses for targeted brute-force or phishing attacks.
+
+4: Why do index and show stay public while create/edit/update/destroy use auth?
+In our Monster Hunter catalog, browsing the game list (`index`) and viewing game details (`show`) are read-only operations meant for any visitor, whereas `create`, `store`, `edit`, `update`, and `destroy` mutate database records and must be restricted to authenticated users.
+
+5: You hid Add (and actions) for guests. Why is that not enough to secure those actions? What actually stops a stranger?
+Hiding UI buttons with `@auth` only removes visual links from the HTML, leaving the underlying `/monsterhunters/create` or `/monsterhunters/{id}/edit` URLs accessible if typed directly or submitted via HTTP requests. The `auth` middleware attached to those five resource routes is what actually intercepts unauthorized requests at the server level and redirects strangers to login.
+
+6: In screenshot 20 the route name was wrong. Why does auth middleware care that the route is named exactly login?
+By default, Laravel's `Authenticate` middleware redirects unauthenticated users by calling `route('login')`. When the GET login route was renamed to `signin`, the middleware could no longer resolve the named route `login`, throwing a `RouteNotFoundException`.
